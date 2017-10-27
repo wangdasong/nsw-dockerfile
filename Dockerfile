@@ -1,6 +1,6 @@
 # Pull base image  
 FROM centos
-
+  
 MAINTAINER wangdasong "wds_1983@163.com"  
 
 # Install JDK 7 
@@ -15,8 +15,6 @@ ENV PATH $PATH:$CATALINA_HOME/bin
 
 RUN chmod 755 /opt/tomcat7/bin
 
-# Expose ports. 
-EXPOSE 8080
 
 # Install git
 RUN yum -y install git
@@ -40,11 +38,17 @@ RUN mkdir /opt/src-nsw
 WORKDIR /opt/src-nsw
 RUN git init
 RUN git pull https://nsw-framework:Aa111111@github.com/wangdasong/nsw.git
+RUN chmod 777 /opt/src-nsw/nsw-base-web/src/main/resources/docker/run.sh
 WORKDIR /opt/src-nsw/nsw-base-web
 RUN mvn clean
-RUN mvn package -DskipTests -Pdev-mysql
+RUN mvn package -DskipTests -Ptest
 RUN rm -rf /opt/tomcat7/webapps/*
 RUN cp /opt/src-nsw/nsw-base-web/target/ROOT.war /opt/tomcat7/webapps/
-  
+
+# Expose ports. 
+EXPOSE 8080
+EXPOSE 3306
+EXPOSE 6389
+
 # Define default command.  
-ENTRYPOINT /opt/tomcat7/bin/startup.sh && tail -f /opt/tomcat7/logs/catalina.out 
+ENTRYPOINT /opt/src-nsw/nsw-base-web/src/main/resources/docker/run.sh
